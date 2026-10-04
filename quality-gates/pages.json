@@ -1,0 +1,34 @@
+{
+  "productionUrl": "https://YOUR-SITE.netlify.app",
+  "responseTimeBudgetMs": 3000,
+  "notFoundPath": "/quality-gate-this-page-does-not-exist",
+  "redirects": [],
+  "requiredSelectors": ["header", "main", "footer"],
+  "forbiddenText": [
+    "[No text in field]",
+    "Unknown component",
+    "missing React implementation",
+    "Application error: a client-side exception has occurred",
+    "Internal Server Error"
+  ],
+  "forbiddenHosts": ["--YOUR-SITE.netlify.app", "localhost"],
+  "pages": [
+    {
+      "name": "Home",
+      "path": "/",
+      "structuredData": ["WebPage"]
+    },
+    {
+      "name": "Article 1",
+      "path": "/REPLACE-WITH-ARTICLE-PATH-1",
+      "selectors": ["time"],
+      "structuredData": ["WebPage", "Article", "Person"]
+    },
+    {
+      "name": "Article 2",
+      "path": "/REPLACE-WITH-ARTICLE-PATH-2",
+      "selectors": ["time"],
+      "structuredData": ["WebPage", "Article", "Person"]
+    }
+  ]
+}

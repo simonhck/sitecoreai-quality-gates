@@ -1,0 +1,66 @@
+# Copy this file to .github/workflows/ in your site repo.
+# Needs (Settings -> Secrets and variables -> Actions): secret NETLIFY_TOKEN,
+# variables NETLIFY_SITE_NAME and PRODUCTION_URL. See README.md.
+name: Quality gates
+
+on:
+  # Every PR: test the Netlify Deploy Preview of the PR's latest commit.
+  pull_request:
+  # Nightly: content publishes from SitecoreAI never go through this pipeline, so test production too.
+  schedule:
+    - cron: '0 5 * * *'
+  # Manual: test any URL.
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: URL to test (empty = production)
+        required: false
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: quality-gates
+    steps:
+      - uses: actions/checkout@v4
+
+      # Netlify doesn't send GitHub deployment events, so poll the Netlify API
+      # until the Deploy Preview for this PR's head commit answers 200.
+      - name: Wait for Netlify Deploy Preview
+        id: preview
+        if: github.event_name == 'pull_request'
+        uses: kamranayub/wait-for-netlify-action@15f8079051d4dcf41c7be111d74820a2ea5d1352 # v2.1.1
+        with:
+          site_name: ${{ vars.NETLIFY_SITE_NAME }}
+          max_timeout: 900
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: quality-gates/package-lock.json
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Run quality gates
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "::error::No URL to test. Set the PRODUCTION_URL variable or pass base_url."
+            exit 1
+          fi
+          npx playwright test
+        env:
+          BASE_URL: ${{ steps.preview.outputs.url || inputs.base_url || vars.PRODUCTION_URL }}
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: quality-gates/playwright-report/
+          retention-days: 14

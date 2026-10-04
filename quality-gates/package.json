@@ -1,0 +1,18 @@
+{
+  "name": "quality-gates",
+  "private": true,
+  "license": "MIT",
+  "description": "Quality gates for a SitecoreAI site: HTTP, rendering, SEO & metadata, structured data. Runs against BASE_URL.",
+  "scripts": {
+    "test": "playwright test",
+    "gate:1": "playwright test 01-http",
+    "gate:2": "playwright test 02-rendering",
+    "gate:3": "playwright test 03-seo",
+    "gate:4": "playwright test 04-structured-data",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.0.0"
+  }
+}
